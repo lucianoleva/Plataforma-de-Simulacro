@@ -1,0 +1,892 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="snake.ico" type="image/png">
+    <title>Plataforma de Simulacro - UCSM Ciencias e Ingenierías</title>
+    <style>
+        :root {
+            --primary-color: #0056b3;
+            --secondary-color: #f8f9fa;
+            --accent-color: #28a745;
+            --text-color: #333;
+            --border-color: #dee2e6;
+        }
+        body {
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background-color: #e9ecef;
+            color: var(--text-color);
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: #fff;
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding-bottom: 20px;
+            border-bottom: 3px solid var(--primary-color);
+        }
+        h1 {
+            color: var(--primary-color);
+            margin-bottom: 10px;
+        }
+        .subtitle {
+            font-size: 1.2em;
+            color: #666;
+            font-weight: 500;
+        }
+        .area-title {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 6px;
+            margin: 30px 0 20px 0;
+            font-size: 1.3em;
+        }
+        .question-card {
+            background: var(--secondary-color);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            transition: box-shadow 0.3s;
+        }
+        .question-card:hover {
+            box-shadow: 0 4px 8px rgba(0,0,0,0.05);
+        }
+        .question-text {
+            font-weight: 600;
+            font-size: 1.1em;
+            margin-bottom: 15px;
+        }
+        .options {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .option-label {
+            display: flex;
+            align-items: center;
+            padding: 10px 15px;
+            background: #fff;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background 0.2s, border-color 0.2s;
+        }
+        .option-label:hover {
+            background: #e2e6ea;
+        }
+        input[type="radio"] {
+            margin-right: 15px;
+            transform: scale(1.2);
+        }
+        .btn-submit {
+            display: block;
+            width: 100%;
+            background-color: var(--accent-color);
+            color: white;
+            border: none;
+            padding: 18px;
+            font-size: 1.2em;
+            font-weight: bold;
+            border-radius: 8px;
+            cursor: pointer;
+            margin-top: 40px;
+            transition: background-color 0.3s;
+        }
+        .btn-submit:hover {
+            background-color: #218838;
+        }
+        .hidden {
+            display: none !important;
+        }
+        
+        /* Results Section */
+        .results-section {
+            animation: fadeIn 0.8s;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            margin-bottom: 40px;
+            background: #fff;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+        th, td {
+            padding: 15px;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+        }
+        th {
+            background-color: var(--primary-color);
+            color: white;
+            font-weight: 600;
+        }
+        tr:nth-child(even) {
+            background-color: #f8f9fa;
+        }
+        .highlight-row {
+            background-color: #d4edda !important;
+            font-weight: bold;
+            border-left: 5px solid var(--accent-color);
+        }
+        .score-display {
+            text-align: center;
+            font-size: 2em;
+            color: var(--primary-color);
+            margin: 20px 0;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="header" id="header">
+        <h1>Simulacro de Examen de Admisión</h1>
+        <div class="subtitle">Área: Ciencias e Ingenierías</div>
+        <p style="margin-top: 10px; color: #555;">Evalúa lo que sabes. Al finalizar, podrás comparar tus resultados. Este simulacro aplica para todas las carreras de canal 2 (Ciencias exactas y Ingenierías).</p>
+    </div>
+
+    <form id="quiz-form">
+        <div id="questions-container"></div>
+        <button type="button" class="btn-submit" id="btn-finalizar">Finalizar Examen</button>
+    </form>
+
+    <div id="results-container" class="results-section hidden">
+        <h2 style="text-align: center; color: var(--primary-color);">¡Examen Finalizado!</h2>
+        
+        <div class="score-display">
+            Tu Puntaje: <span id="final-score">0</span> / 800
+        </div>
+
+        <h3>Tus Resultados Detallados</h3>
+        <table id="user-stats-table">
+            <thead>
+                <tr>
+                    <th>Nombre del Estudiante</th>
+                    <th>Respuestas Correctas</th>
+                    <th>Respuestas Incorrectas/Blanco</th>
+                    <th>Puntaje Total</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr id="user-stats-row">
+                    <!-- Injected via JS -->
+                </tr>
+            </tbody>
+        </table>
+
+        <h3>Tabla de Posiciones (Ranking General)</h3>
+        <table id="leaderboard-table">
+            <thead>
+                <tr>
+                    <th style="width: 10%;">Puesto</th>
+                    <th>Estudiante</th>
+                    <th style="width: 25%;">Puntaje</th>
+                </tr>
+            </thead>
+            <tbody id="leaderboard-body">
+                <!-- Injected via JS -->
+            </tbody>
+        </table>
+        
+        <div style="text-align: center; margin-top: 30px;">
+            <button class="btn-submit" style="width: auto; padding: 12px 30px; background-color: var(--primary-color);" onclick="location.reload()">Realizar Nuevo Intento</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    const rawExamData = `Razonamiento Matemático y Matemática (18% - 14 preguntas)
+1. ¿Qué número continúa en la sucesión: 2, 6, 12, 20, 30, ...?
+A) 40
+B) 42
+C) 44
+D) 46
+E) 48
+2. Si el triple de un número, disminuido en 5, equivale al mismo número aumentado en 7, ¿cuál es el número?
+A) 4
+B) 5
+C) 6
+D) 7
+E) 8
+3. ¿Cuál es el 20% del 30% de 500?
+A) 20
+B) 30
+C) 40
+D) 50
+E) 60
+4. Juan tiene el doble de la edad de Pedro. Si hace 5 años la suma de sus edades era 20, ¿cuántos años tiene Pedro actualmente?
+A) 10
+B) 15
+C) 20
+D) 25
+E) 30
+5. Si a + b = 5 y ab = 6, calcula el valor de a² + b².
+A) 10
+B) 11
+C) 12
+D) 13
+E) 14
+6. En una urna hay 4 bolas rojas y 6 bolas azules. Si se extrae una bola al azar, ¿cuál es la probabilidad de que sea roja?
+A) 1/5
+B) 2/5
+C) 3/5
+D) 4/5
+E) 1/2
+7. Resuelve la ecuación: 4x - 2 = 2x + 10.
+A) 3
+B) 4
+C) 5
+D) 6
+E) 7
+8. Un caño llena un tanque en 3 horas y otro lo llena en 6 horas. ¿En cuánto tiempo lo llenarán juntos?
+A) 1.5 horas
+B) 2 horas
+C) 2.5 horas
+D) 3 horas
+E) 4 horas
+9. Calcula el valor de: sen(30°) + cos(60°).
+A) 0.5
+B) 1
+C) 1.5
+D) 2
+E) 0
+10. De cuántas formas diferentes se pueden ordenar 4 libros en un estante?
+A) 12
+B) 16
+C) 20
+D) 24
+E) 30
+11. Halla el valor de "x" en la progresión geométrica: 3, 9, 27, x.
+A) 36
+B) 54
+C) 81
+D) 108
+E) 120
+12. Si el área de un círculo es 25π cm², ¿cuál es su radio?
+A) 2 cm
+B) 3 cm
+C) 4 cm
+D) 5 cm
+E) 6 cm
+13. Reduce la expresión logarítmica: log₂(8) + log₃(9).
+A) 4
+B) 5
+C) 6
+D) 7
+E) 8
+14. Dos ruedas dentadas engranan entre sí. La primera tiene 20 dientes y da 30 vueltas por minuto. Si la segunda tiene 15 dientes, ¿cuántas vueltas por minuto dará?
+A) 20
+B) 30
+C) 40
+D) 45
+E) 50
+Física (16% - 13 preguntas)
+15. Un automóvil viaja a una velocidad constante de 72 km/h. ¿Qué distancia recorrerá en 10 segundos?
+A) 100 m
+B) 150 m
+C) 200 m
+D) 250 m
+E) 300 m
+16. Se deja caer un objeto desde cierta altura. Si tarda 3 segundos en llegar al suelo y considerando la gravedad como 10 m/s², ¿desde qué altura cayó?
+A) 30 m
+B) 45 m
+C) 60 m
+D) 75 m
+E) 90 m
+17. Al implementar un sensor de temperatura digital con una placa Arduino Uno, se conecta un termistor en serie con una resistencia de 10k ohmios a una fuente de 5V. La ley que permite calcular la corriente del circuito es:
+A) Ley de Faraday
+B) Ley de Ampère
+C) Ley de Ohm
+D) Ley de Gauss
+E) Ley de Coulomb
+18. ¿Cuál es la fuerza necesaria para acelerar un cuerpo de 5 kg a razón de 4 m/s²?
+A) 10 N
+B) 15 N
+C) 20 N
+D) 25 N
+E) 30 N
+19. Un sistema está en equilibrio mecánico si:
+A) Su aceleración es constante y mayor a cero.
+B) La suma de todas las fuerzas y torques sobre él es cero.
+C) Su energía cinética es máxima.
+D) Solo actúan fuerzas conservativas.
+E) Su masa es despreciable.
+20. En un prototipo de cocina solar, la superficie reflectante concentra los rayos del sol hacia un punto central para calentar un recipiente. El mecanismo principal de transferencia de calor desde el sol hasta la superficie es:
+A) Conducción
+B) Convección
+C) Radiación
+D) Fricción
+E) Inducción
+21. Dos resistencias de 6 ohmios y 3 ohmios se conectan en paralelo. La resistencia equivalente del sistema es:
+A) 9 ohmios
+B) 6 ohmios
+C) 3 ohmios
+D) 2 ohmios
+E) 1 ohmio
+22. Según el Principio de Arquímedes, la fuerza de empuje que experimenta un cuerpo sumergido depende de:
+A) La masa del cuerpo.
+B) El volumen del líquido desalojado.
+C) La presión atmosférica.
+D) La forma geométrica exacta del recipiente.
+E) La temperatura del líquido.
+23. ¿Qué trabajo se realiza al aplicar una fuerza horizontal de 50 N para mover un bloque 4 metros sobre una superficie sin fricción?
+A) 100 J
+B) 150 J
+C) 200 J
+D) 250 J
+E) 300 J
+24. La magnitud vectorial que relaciona el cambio de la velocidad en un intervalo de tiempo se denomina:
+A) Desplazamiento
+B) Trabajo
+C) Potencia
+D) Aceleración
+E) Impulso
+25. La unidad de la potencia en el Sistema Internacional es el:
+A) Joule
+B) Newton
+C) Watt
+D) Pascal
+E) Hertz
+26. Si la energía mecánica de un sistema aislado se conserva, esto significa que:
+A) No hay energía potencial.
+B) La energía cinética es siempre cero.
+C) La suma de la energía cinética y potencial permanece constante.
+D) Actúan fuerzas de rozamiento.
+E) El trabajo neto es negativo.
+27. ¿Cuál es la magnitud de la resultante de dos vectores perpendiculares de módulos 3 u y 4 u?
+A) 1 u
+B) 5 u
+C) 7 u
+D) 12 u
+E) 25 u
+Química (13% - 10 preguntas)
+28. El núcleo de un átomo está compuesto fundamentalmente por:
+A) Electrones y protones
+B) Electrones y neutrones
+C) Protones y neutrones
+D) Solo protones
+E) Solo electrones
+29. El número atómico (Z) de un elemento indica la cantidad de:
+A) Neutrones
+B) Masa atómica
+C) Protones en el núcleo
+D) Niveles de energía
+E) Isótopos
+30. Un enlace químico donde hay transferencia de electrones de un átomo metálico a uno no metálico se conoce como:
+A) Enlace covalente polar
+B) Enlace iónico
+C) Enlace metálico
+D) Enlace covalente apolar
+E) Puente de hidrógeno
+31. La fórmula química del ácido sulfúrico es:
+A) H2SO3
+B) HCl
+C) HNO3
+D) H2SO4
+E) H3PO4
+32. ¿Cuál de las siguientes sustancias es considerada una base o álcali fuerte?
+A) HCl
+B) NaCl
+C) NaOH
+D) CH3COOH
+E) H2O
+33. En la tabla periódica, los elementos del grupo 17 (VIIA) son conocidos como:
+A) Gases nobles
+B) Metales alcalinos
+C) Halógenos
+D) Calcógenos
+E) Metales de transición
+34. La unidad que representa la cantidad de sustancia en química es:
+A) El gramo
+B) El litro
+C) El mol
+D) El átomo
+E) La uma
+35. Una reacción química que libera energía en forma de calor al entorno se clasifica como:
+A) Endotérmica
+B) Exotérmica
+C) Isocórica
+D) Reversible
+E) De síntesis
+36. En química orgánica, los hidrocarburos saturados de cadena abierta reciben el nombre de:
+A) Alquenos
+B) Alquinos
+C) Aromáticos
+D) Alcanos
+E) Alcoholes
+37. ¿Qué compuesto es el principal componente del gas natural?
+A) Butano
+B) Etano
+C) Metano
+D) Propano
+E) Octano
+Comunicación y Razonamiento Verbal (10% - 8 preguntas)
+38. Identifica el sinónimo de la palabra EFÍMERO:
+A) Eterno
+B) Duradero
+C) Pasajero
+D) Fuerte
+E) Extenso
+39. Identifica el antónimo de la palabra OPULENCIA:
+A) Riqueza
+B) Miseria
+C) Abundancia
+D) Lujo
+E) Soberbia
+40. Marca la analogía correcta. CIRUJANO es a QUIRÓFANO como:
+A) Maestro es a alumno
+B) Juez es a tribunal
+C) Abogado es a ley
+D) Médico es a receta
+E) Ingeniero es a cálculo
+41. Complete la oración: "La ___ de los testigos fue clave para ___ el caso".
+A) ausencia - resolver
+B) declaración - complicar
+C) mentira - aclarar
+D) presencia - abandonar
+E) evidencia - esclarecer
+42. ¿Qué palabra NO pertenece al mismo campo semántico?
+A) Cobre
+B) Plata
+C) Oro
+D) Acero
+E) Bronce
+43. Identifica la serie de palabras escritas correctamente según las reglas de tildación:
+A) Exámen - árbol - canción
+B) Examen - arbol - cancion
+C) Examen - árbol - canción
+D) Éxamen - árbol - canción
+E) Examen - árbol - cancion
+44. Conector lógico: "Estudió mucho para el examen, ___ no logró el puntaje esperado".
+A) ya que
+B) por lo tanto
+C) sin embargo
+D) además
+E) entonces
+45. En la oración "El ingeniero diseñó el circuito", el núcleo del predicado es:
+A) ingeniero
+B) El
+C) diseñó
+D) circuito
+E) el circuito
+Pensamiento Crítico (10% - 8 preguntas)
+46. Si "Todos los metales son conductores" y "El cobre es un metal", la conclusión lógica es:
+A) El cobre es pesado.
+B) Algunos metales son cobre.
+C) El cobre es conductor.
+D) Los conductores son metales.
+E) El cobre es brillante.
+47. ¿Qué falacia lógica se comete al atacar a la persona que hace el argumento en lugar del argumento mismo?
+A) Falacia del hombre de paja
+B) Falacia ad hominem
+C) Apelación a la autoridad
+D) Falsa dicotomía
+E) Petición de principio
+48. Si ocurre el evento A, entonces ocurre el evento B. Ocurre B. Por lo tanto, ocurrió A. Este razonamiento es:
+A) Válido y deductivo.
+B) Una falacia de afirmación del consecuente.
+C) Una inferencia inductiva.
+D) Un silogismo perfecto.
+E) Una premisa categórica.
+49. "El 80% de los estudiantes encuestados en la biblioteca afirma leer al menos un libro al mes; por tanto, el 80% de la población general lee un libro al mes". Este argumento falla porque:
+A) Los libros son costosos.
+B) La muestra no es representativa de la población general.
+C) No especifica qué tipo de libros leen.
+D) El porcentaje es demasiado alto.
+E) Las bibliotecas están cerradas los domingos.
+50. Analiza: "Para resolver el problema del tráfico se deben construir más puentes". Una premisa implícita en este argumento es que:
+A) Los puentes son económicos.
+B) La falta de vías es la única causa del tráfico.
+C) Los autos son muy grandes.
+D) No hay transporte público.
+E) La gente prefiere caminar.
+51. ¿Cuál es una característica fundamental del método científico?
+A) Confiar ciegamente en autoridades históricas.
+B) Formular hipótesis que puedan ser sometidas a prueba (falsabilidad).
+C) Buscar evidencia que solo confirme la creencia inicial.
+D) Ignorar los datos atípicos sin analizarlos.
+E) Evitar la experimentación en ciencias formales.
+52. "La tecnología móvil en las aulas causa distracción. Por ello, la ley N° 32385 busca regular su uso". La relación entre estas oraciones es de:
+A) Contraste
+B) Causa y efecto
+C) Adición
+D) Ejemplificación
+E) Reiteración
+53. Una matriz de gastos operativos es útil para la toma de decisiones financieras porque:
+A) Elimina por completo los gastos de servicios básicos.
+B) Permite visualizar, proyectar y controlar los egresos en un periodo determinado.
+C) Aumenta automáticamente los ingresos mensuales.
+D) Reemplaza la necesidad de pagar alquiler.
+E) Es un documento exclusivo de los bancos.
+Inglés (8% - 6 preguntas)
+54. Complete the sentence with the correct tense: "In 1969, astronaut Neil Armstrong ______ the first person to walk on the moon."
+A) becomes
+B) has become
+C) became
+D) is becoming
+E) will become
+55. Choose the correct preposition: "The passengers must show their boarding pass ______ the departure gate before boarding the flight."
+A) in
+B) on
+C) at
+D) to
+E) with
+56. Which word is the correct synonym for "achieve"?
+A) Fail
+B) Lose
+C) Accomplish
+D) Surrender
+E) Ignore
+57. Complete the conditional sentence: "If Simon Bolivar had not led the independence campaigns, the history of South America ______ very different today."
+A) is
+B) will be
+C) would be
+D) was
+E) has been
+58. Read the instruction: "Please ensure your seatbelt is fastened while the seatbelt sign is illuminated." Where would you most likely hear this?
+A) In a library
+B) On an airplane
+C) In a restaurant
+D) At a hospital
+E) During a football match
+59. Paraphrase the following sentence: "The prototype was built by the students."
+A) The students are building the prototype.
+B) The students built the prototype.
+C) The students will build the prototype.
+D) The prototype is built by the students.
+E) The prototype has been built by the students.
+Desarrollo Personal (6% - 5 preguntas)
+60. La capacidad de comprender y compartir los sentimientos de otra persona se denomina:
+A) Asertividad
+B) Empatía
+C) Simpatía
+D) Resiliencia
+E) Proactividad
+61. Cuando una persona defiende sus derechos y expresa sus opiniones de manera clara y respetuosa, sin agredir a los demás, está utilizando una comunicación:
+A) Pasiva
+B) Agresiva
+C) Asertiva
+D) Persuasiva
+E) Evasiva
+62. La capacidad de adaptarse positivamente a situaciones adversas o traumáticas se conoce como:
+A) Ansiedad
+B) Dependencia
+C) Conformismo
+D) Resiliencia
+E) Introversión
+63. En el trabajo en equipo, un líder democrático se caracteriza por:
+A) Tomar todas las decisiones sin consultar.
+B) Desligarse de las responsabilidades del grupo.
+C) Fomentar la participación y escuchar las opiniones de los miembros.
+D) Imponer castigos ante cualquier error.
+E) Competir con los miembros de su propio equipo.
+64. El proceso mediante el cual un individuo evalúa de manera realista sus propias fortalezas y debilidades corresponde a su:
+A) Autoconcepto
+B) Egoísmo
+C) Prejuicio
+D) Habilidad cognitiva
+E) Memoria a corto plazo
+Arte y Cultura (5% - 4 preguntas)
+65. ¿Cuál de los siguientes artistas es un representante máximo del Renacimiento italiano, autor de "La Última Cena"?
+A) Vincent van Gogh
+B) Pablo Picasso
+C) Leonardo da Vinci
+D) Salvador Dalí
+E) Diego Velázquez
+66. La polka "Mi canto a Tacna", de Eduardo Pérez Gamboa, es una pieza musical clásica que representa el arraigo y patriotismo de la región sur del Perú. Este género musical pertenece a:
+A) La música afroperuana
+B) La música tacneña tradicional
+C) La cumbia amazónica
+D) El huayno andino
+E) El rock contemporáneo
+67. El movimiento arquitectónico e industrial que surgió a principios del siglo XX en Alemania, que buscaba unificar el arte, la artesanía y la tecnología, se llamó:
+A) Bauhaus
+B) Cubismo
+C) Surrealismo
+D) Barroco
+E) Gótico
+68. En la literatura peruana, la obra "Tradiciones Peruanas" fue escrita por:
+A) César Vallejo
+B) Mario Vargas Llosa
+C) Ricardo Palma
+D) José María Arguedas
+E) Ciro Alegría
+Historia (5% - 4 preguntas)
+69. La Batalla del Alto de la Alianza, un acontecimiento bélico crucial ocurrido el 26 de mayo de 1880, se desarrolló en el contexto de:
+A) La Guerra de Independencia del Perú
+B) La Guerra del Pacífico (Guerra del Guano y del Salitre)
+C) La Guerra con la Gran Colombia
+D) El Combate de Dos de Mayo
+E) La Revolución de Túpac Amaru II
+70. La civilización andina preincaica famosa por la creación de extensas líneas y geoglifos en el desierto costero del sur del Perú es:
+A) Chavín
+B) Mochica
+C) Paracas
+D) Nazca
+E) Wari
+71. Durante el Virreinato del Perú, la principal actividad económica que sostuvo la riqueza de la corona española fue:
+A) La textilería
+B) La agricultura
+C) La ganadería
+D) La minería
+E) La pesca
+72. ¿Qué evento histórico, iniciado en 1789, marcó el fin de la Edad Moderna y el comienzo de la Edad Contemporánea, consolidando los derechos del hombre y del ciudadano?
+A) La Revolución Industrial
+B) La Primera Guerra Mundial
+C) La Revolución Francesa
+D) El Descubrimiento de América
+E) La Caída del Imperio Romano
+Biología (5% - 4 preguntas)
+73. El organelo celular encargado de la respiración y de la producción de energía (ATP) en las células eucariotas es:
+A) El ribosoma
+B) El aparato de Golgi
+C) El lisosoma
+D) La mitocondria
+E) El núcleo
+74. El proceso mediante el cual las plantas capturan la energía solar para transformar agua y dióxido de carbono en glucosa y oxígeno es la:
+A) Fermentación
+B) Respiración celular
+C) Meiosis
+D) Transpiración
+E) Fotosíntesis
+75. La unidad básica de la herencia que se transite de padres a hijos y contiene la información genética es el:
+A) Cromosoma
+B) Gen
+C) Lípido
+D) Glóbulo rojo
+E) Aminoácido
+76. En el sistema digestivo humano, la absorción principal de los nutrientes ocurre en:
+A) El estómago
+B) El esófago
+C) El intestino delgado
+D) El intestino grueso
+E) El hígado
+Emprendimiento (4% - 4 preguntas)
+77. En la creación de un nuevo proyecto, el acrónimo "FODA" hace referencia al análisis de:
+A) Finanzas, Objetivos, Dinero y Acciones
+B) Fortalezas, Oportunidades, Debilidades y Amenazas
+C) Funciones, Organizaciones, Demandas y Activos
+D) Franquicias, Ofertas, Deudas y Aranceles
+E) Formatos, Operaciones, Datos y Aplicaciones
+78. El grupo específico de consumidores a los cuales una empresa dirige sus productos y esfuerzos de marketing se conoce como:
+A) Competidores
+B) Proveedores
+C) Inversores
+D) Público objetivo (Target)
+E) Accionistas
+79. Una "Startup" se caracteriza principalmente por ser una empresa de reciente creación que:
+A) Tiene un modelo de negocio tradicional y escalamiento lento.
+B) Posee un alto potencial de crecimiento escalable, a menudo apoyado en tecnología.
+C) Solo funciona como una organización sin fines de lucro.
+D) Requiere obligatoriamente cotizar en la bolsa de valores desde el primer día.
+E) Vende exclusivamente bienes raíces.
+80. La "propuesta de valor" de un emprendimiento responde directamente a la pregunta:
+A) ¿Cuánto cuesta fabricar el producto?
+B) ¿Quiénes son los empleados de la empresa?
+C) ¿Por qué el cliente debería elegir mi producto o servicio en lugar de la competencia?
+D) ¿En qué banco se abrirá la cuenta corriente?
+E) ¿Cuál es la estructura jurídica de la empresa?`;
+
+    function parseExamData(text) {
+        const questions = [];
+        const lines = text.split('\n');
+        let currentArea = "";
+        let currentQuestion = null;
+
+        for (let line of lines) {
+            line = line.trim();
+            if (!line) continue;
+
+            // Detect Area headers
+            if (line.includes('% -') && line.includes('preguntas')) {
+                currentArea = line;
+                continue;
+            }
+
+            // Detect Question start
+            const qMatch = line.match(/^(\d+)\.\s+(.*)/);
+            if (qMatch) {
+                if (currentQuestion) {
+                    questions.push(currentQuestion);
+                }
+                currentQuestion = {
+                    num: qMatch[1],
+                    text: qMatch[2],
+                    area: currentArea,
+                    options: [],
+                    // For the sake of the simulator, assigning random correct answers (0-4 index).
+                    correctIndex: Math.floor(Math.random() * 5) 
+                };
+            } 
+            // Detect Options
+            else if (/^[A-E]\)/.test(line)) {
+                if (currentQuestion) {
+                    currentQuestion.options.push(line);
+                }
+            } 
+            // Multiline questions
+            else {
+                if (currentQuestion && currentQuestion.options.length === 0) {
+                    currentQuestion.text += " " + line;
+                }
+            }
+        }
+        if (currentQuestion) {
+            questions.push(currentQuestion);
+        }
+        return questions;
+    }
+
+    const examQuestions = parseExamData(rawExamData);
+    
+    // Render Questions
+    const container = document.getElementById('questions-container');
+    let lastArea = "";
+    
+    examQuestions.forEach((q, index) => {
+        if (q.area !== lastArea) {
+            const areaTitle = document.createElement('div');
+            areaTitle.className = 'area-title';
+            areaTitle.textContent = q.area;
+            container.appendChild(areaTitle);
+            lastArea = q.area;
+        }
+
+        const card = document.createElement('div');
+        card.className = 'question-card';
+
+        const qText = document.createElement('div');
+        qText.className = 'question-text';
+        qText.textContent = `${q.num}. ${q.text}`;
+        card.appendChild(qText);
+
+        const optionsDiv = document.createElement('div');
+        optionsDiv.className = 'options';
+
+        q.options.forEach((opt, optIndex) => {
+            const label = document.createElement('label');
+            label.className = 'option-label';
+            
+            const input = document.createElement('input');
+            input.type = 'radio';
+            input.name = `q_${index}`;
+            input.value = optIndex;
+
+            label.appendChild(input);
+            label.appendChild(document.createTextNode(opt));
+            optionsDiv.appendChild(label);
+        });
+
+        card.appendChild(optionsDiv);
+        container.appendChild(card);
+    });
+
+    // Mock Database for other users (Contextualized for UCSM)
+    const mockUsers = [
+        { name: "NO INFO", score: 680 },
+        { name: "NO INFO", score: 720 },
+        { name: "NO INFO", score: 550 },
+        { name: "NO INFO", score: 610 },
+        { name: "NO INFO", score: 590 },
+        { name: "NO INFO", score: 750 }
+    ];
+
+    // Handle Submission
+    document.getElementById('btn-finalizar').addEventListener('click', () => {
+        // Validation Name
+        let studentName = "";
+        while (true) {
+            studentName = prompt("¡Has llegado al final del examen!\nPor favor, ingresa tu Nombre y Apellido (solo letras) para registrar tu nota:");
+            if (studentName === null) return; // User cancelled
+            
+            studentName = studentName.trim();
+            // Regex to check if name has at least 3 letters and NO numbers
+            if (studentName.length >= 3 && !/\d/.test(studentName)) {
+                break;
+            } else {
+                alert("Error: El nombre debe ser real, contener al menos 3 caracteres y NO incluir números. Inténtalo de nuevo.");
+            }
+        }
+
+        // Calculate score
+        let correctAnswers = 0;
+        
+        examQuestions.forEach((q, index) => {
+            const selected = document.querySelector(`input[name="q_${index}"]:checked`);
+            if (selected && parseInt(selected.value) === q.correctIndex) {
+                correctAnswers++;
+            }
+        });
+
+        const totalQuestions = examQuestions.length;
+        const incorrectAnswers = totalQuestions - correctAnswers;
+        
+        // Simulating 10 points per correct question (Max 800 for 80 qs)
+        const finalScore = correctAnswers * 10; 
+
+        // Hide Exam, Show Results
+        document.getElementById('quiz-form').classList.add('hidden');
+        document.getElementById('header').classList.add('hidden');
+        document.getElementById('results-container').classList.remove('hidden');
+
+        // Populate User Data
+        document.getElementById('final-score').textContent = finalScore;
+        document.getElementById('user-stats-row').innerHTML = `
+            <td><strong>${studentName}</strong></td>
+            <td style="color: green; font-weight: bold;">${correctAnswers}</td>
+            <td style="color: red;">${incorrectAnswers}</td>
+            <td style="font-weight: bold; font-size: 1.1em;">${finalScore}</td>
+        `;
+
+        // Update and Sort Leaderboard
+        mockUsers.push({ name: studentName, score: finalScore, isUser: true });
+        mockUsers.sort((a, b) => b.score - a.score);
+
+        const lbBody = document.getElementById('leaderboard-body');
+        lbBody.innerHTML = "";
+        
+        mockUsers.forEach((user, index) => {
+            const tr = document.createElement('tr');
+            if (user.isUser) tr.className = "highlight-row";
+            
+            tr.innerHTML = `
+                <td>#${index + 1}</td>
+                <td>${user.name} ${user.isUser ? '(Tú)' : ''}</td>
+                <td><strong>${user.score}</strong></td>
+            `;
+            lbBody.appendChild(tr);
+        });
+
+        // Scroll to top
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
+</script>
+
+</body>
+</html>
+Todos los derechos reservados a las universidades que contienen estos examenes en su examen de admision:
+<li>UCSM®</li>
+<li>UPT®</li>
+<li>UPC®</li>
+<li>SAN MARCOS®</li>
+<li>UNJBG®</li>
+<li>PUCP®</li>
+<li>UCSP®</li>
